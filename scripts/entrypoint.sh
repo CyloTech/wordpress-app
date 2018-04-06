@@ -8,13 +8,13 @@ mkdir -p /run/php
 /scripts/mariadb.sh
 
 
-if [ ! -f /etc/wpinstalled ]; then
+if [ ! -f /etc/wp_installed ]; then
     rm -fr /var/www/html/index.php
 
     /usr/bin/mysqld --user=nginx --verbose=0 &
 
     # Download WordPress
-    wp_version=4.9.4 && \
+    wp_version=4.9.5 && \
     curl -L "https://wordpress.org/wordpress-${wp_version}.tar.gz" > /wordpress-${wp_version}.tar.gz && \
     rm -fr /var/www/html/index.html && \
     tar -xzf /wordpress-${wp_version}.tar.gz -C /var/www/html --strip-components=1 && \
@@ -36,7 +36,7 @@ if [ ! -f /etc/wpinstalled ]; then
        sed -i "s/MYSQL_USERNAME/root/g" /var/www/html/wp-config.php
        sed -i "s/MYSQL_PASSWORD/${MYSQL_ROOT_PASSWORD}/g" /var/www/html/wp-config.php
        wp --allow-root core install --path='/var/www/html' --url="$WP_URL" --title="$WP_TITLE" --admin_user="$WP_ADMIN_USER" --admin_password="$WP_ADMIN_PASSWORD" --admin_email="$WP_ADMIN_EMAIL"
-       touch /etc/wpinstalled
+       touch /etc/wp_installed
 
        curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST "https://api.cylo.io/v1/apps/installed/$INSTANCE_ID"
 

@@ -1,9 +1,11 @@
-FROM repo.cylo.io/alpine-lamp
+FROM repo.cylo.io/ubuntu-lemp
 
-# Set Environment Variables.
-ENV DISABLE_START           true
-ENV MYSQL_DATABASE          wordpress
-ENV MYSQL_ROOT_PASSWORD     mysqlr00t
+# Disable Supervisor on the parent image, this allows us to run commands after the parent has finished installing.
+ENV START_SUPERVISOR=false
+
+# Declare Environment variables required by the parent:
+ENV MYSQL_ROOT_PASS=mysqlr00t
+ENV DB_NAME=wordpress
 
 # WordPress environment variables
 ENV WP_URL                  ${WP_URL:-"localhost"}

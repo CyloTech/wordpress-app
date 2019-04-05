@@ -1,25 +1,29 @@
-#!/bin/sh
+#!/bin/bash
 set -x
 
 if [ ! -f /etc/wp_installed ]; then
     if [ ! -f /home/appbox/public_html/wp-config.php ]; then
-        # Setup the LEMP Stack.
-        /bin/sh /scripts/lemp.sh
-
         rm -fr /home/appbox/public_html/index.php
 
-        /usr/sbin/mysqld --user=appbox --socket=/run/mysqld/mysqld.sock &
+        /usr/sbin/mysqld --defaults-file=/home/appbox/config/mysql/mysqld.cnf --verbose=0 --socket=/run/mysqld/mysqld.sock &
+        while !(mysqladmin ping)
+        do
+           sleep 3
+           echo "waiting for mysql ..."
+        done
+
+        echo "Installing dependencies"
+        apt update
+        apt install sendmail
 
         # Download WordPress
-        wp_version=4.9.8 && \
-        curl -L "https://wordpress.org/wordpress-${wp_version}.tar.gz" > /wordpress-${wp_version}.tar.gz && \
+        curl -L "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz" > /wordpress-${WP_VERSION}.tar.gz && \
         rm -fr /home/appbox/public_html/index.html && \
-        tar -xzf /wordpress-${wp_version}.tar.gz -C /home/appbox/public_html --strip-components=1 && \
-        rm /wordpress-${wp_version}.tar.gz
+        tar -xzf /wordpress-${WP_VERSION}.tar.gz -C /home/appbox/public_html --strip-components=1 && \
+        rm /wordpress-${WP_VERSION}.tar.gz
 
         # Download WordPress CLI
-        cli_version=1.4.1 && \
-        curl -L "https://github.com/wp-cli/wp-cli/releases/download/v${cli_version}/wp-cli-${cli_version}.phar" > /usr/bin/wp && \
+        curl -L "https://github.com/wp-cli/wp-cli/releases/download/v${WP_CLI_VERSION}/wp-cli-${WP_CLI_VERSION}.phar" > /usr/bin/wp && \
         chmod +x /usr/bin/wp
 
         if ! $(wp core is-installed  --allow-root --path='/home/appbox/public_html'); then
@@ -38,20 +42,26 @@ if [ ! -f /etc/wp_installed ]; then
            chmod -R 777 /home/appbox/public_html/wp-content/themes
            chmod -R 777 /home/appbox/public_html/wp-content/plugins
 
+           echo "Finishing Install"
+           # Finish Install
+           until [[ $(curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST "https://api.cylo.io/v1/apps/installed/${INSTANCE_ID}" | grep '200') ]]
+               do
+               sleep 5
+           done
+
            touch /etc/wp_installed
-           curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST "https://api.cylo.io/v1/apps/installed/$INSTANCE_ID"
 
            pkill -9 mysqld
         else
            echo "=> WordPress is already configured."
         fi
     else
-        pkill -9 mysqld
-        echo "This is an update, do nothing, Wordpress updates should be done from within the app".
+        echo "This is an update, Wordpress updates should be done from within the app.".
+        until [[ $(curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST "https://api.cylo.io/v1/apps/installed/${INSTANCE_ID}" | grep '200') ]]
+           do
+           sleep 5
+        done
     fi
 else
     echo "WP is already installed, just start up."
 fi
-
-exec /usr/bin/supervisord -n -c /home/appbox/config/supervisor/supervisord.conf
-exec "$@"

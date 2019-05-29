@@ -14,7 +14,7 @@ if [ ! -f /etc/wp_installed ]; then
 
         echo "Installing dependencies"
         apt update
-        apt install sendmail
+        apt install sendmail php-dom php-gd
 
         # Download WordPress
         curl -L "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz" > /wordpress-${WP_VERSION}.tar.gz && \

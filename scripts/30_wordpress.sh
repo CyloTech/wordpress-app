@@ -61,6 +61,7 @@ if [ ! -f /etc/wp_installed ]; then
         fi
     else
         echo "This is an update, Wordpress updates should be done from within the app.".
+        rm -fr /home/appbox/config/nginx/sites-enabled/default-site.conf
         until [[ $(curl -i -H "Accept: application/json" -H "Content-Type:application/json" -X POST "https://api.cylo.io/v1/apps/installed/${INSTANCE_ID}" | grep '200') ]]
            do
            sleep 5

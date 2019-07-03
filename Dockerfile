@@ -20,6 +20,7 @@ ENV WP_CLI_VERSION          ${WP_CLI_VERSION:-"2.1.0"}
 
 # WordPress configuration
 ADD sources/wp-config.php /wp-config.php
+ADD sources/wordpress.conf /wordpress.conf
 
 ADD scripts/30_wordpress.sh /etc/my_init.d/30_wordpress.sh
 RUN chmod +x /etc/my_init.d/30_wordpress.sh

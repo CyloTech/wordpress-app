@@ -38,6 +38,9 @@ if [ ! -f /etc/wp_installed ]; then
            sed -i "s/MYSQL_PASSWORD/${MYSQL_ROOT_PASSWORD}/g" /home/appbox/public_html/wp-config.php
            wp --allow-root core install --path='/home/appbox/public_html' --url="$WP_URL" --title="$WP_TITLE" --admin_user="$WP_ADMIN_USER" --admin_password="$WP_ADMIN_PASSWORD" --admin_email="$WP_ADMIN_EMAIL"
 
+           rm -fr /home/appbox/config/nginx/sites-enabled/default-site.conf
+           mv /wordpress.conf /home/appbox/config/nginx/sites-enabled/wordpress.conf
+
            chmod -R 777 /home/appbox/public_html/wp-content/uploads
            chmod -R 777 /home/appbox/public_html/wp-content/themes
            chmod -R 777 /home/appbox/public_html/wp-content/plugins
@@ -52,6 +55,7 @@ if [ ! -f /etc/wp_installed ]; then
            touch /etc/wp_installed
 
            pkill -9 mysqld
+
         else
            echo "=> WordPress is already configured."
         fi

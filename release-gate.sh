@@ -29,7 +29,10 @@ test_password="$(openssl rand -base64 30)"
 cleanup() {
     docker rm -f "${fresh_container}" "${legacy_container}" "${upgrade_container}" >/dev/null 2>&1 || true
     if [[ "${gate_root}" =~ ^/home/appbox/builds/wordpress-gate\.[A-Za-z0-9]{6}$ ]]; then
-        rm -rf -- "${gate_root}"
+        docker run --rm --platform linux/amd64 --entrypoint sh \
+            -v "${gate_root}:/gate" "${image_ref}" \
+            -c 'find /gate -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +' >/dev/null 2>&1 || true
+        rmdir -- "${gate_root}" || echo "Builder cleanup needed at ${gate_root}" >&2
     fi
 }
 
@@ -92,7 +95,7 @@ check_core_updates() {
     docker exec -u 1000 "${container}" test -w "${wp_path}/wp-includes/version.php" \
         || fail "${container} cannot write WordPress core as the app user"
     docker exec -u 1000 "${container}" wp --path="${wp_path}" --skip-plugins --skip-themes \
-        eval 'if ((new WP_Automatic_Updater())->is_disabled()) { exit(1); }' >/dev/null \
+        eval 'require_once ABSPATH . "wp-admin/includes/class-wp-automatic-updater.php"; if ((new WP_Automatic_Updater())->is_disabled()) { exit(1); }' >/dev/null \
         || fail "${container} reports its automatic updater disabled"
 }
 

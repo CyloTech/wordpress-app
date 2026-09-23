@@ -94,6 +94,8 @@ check_core_updates() {
         || fail "${container} does not enable core auto-updates"
     docker exec -u 1000 "${container}" test -w "${wp_path}/wp-includes/version.php" \
         || fail "${container} cannot write WordPress core as the app user"
+    docker exec -u 1000 "${container}" test -w "${wp_path}/wp-content" \
+        || fail "${container} cannot write WordPress update workspace as the app user"
     docker exec -u 1000 "${container}" wp --path="${wp_path}" --skip-plugins --skip-themes \
         eval 'require_once ABSPATH . "wp-admin/includes/class-wp-automatic-updater.php"; if ((new WP_Automatic_Updater())->is_disabled()) { exit(1); }' >/dev/null \
         || fail "${container} reports its automatic updater disabled"
@@ -140,8 +142,8 @@ docker pull --platform linux/amd64 "${baseline_ref}" >/dev/null
 launch "${legacy_container}" "${gate_root}/upgrade" "${baseline_ref}"
 [[ "$(docker exec "${legacy_container}" wp --allow-root --path="${wp_path}" core version)" == "7.0.2" ]] \
     || fail "legacy fixture has the wrong core version"
-docker exec -u 1000 "${legacy_container}" mkdir -p "${wp_path}/wp-content/uploads"
-docker exec -u 1000 "${legacy_container}" touch "${wp_path}/wp-content/uploads/release-gate-marker"
+docker exec "${legacy_container}" mkdir -p "${wp_path}/wp-content/uploads"
+docker exec "${legacy_container}" touch "${wp_path}/wp-content/uploads/release-gate-marker"
 legacy_salt_hash="$(docker exec "${legacy_container}" wp --allow-root --path="${wp_path}" \
     config get AUTH_KEY | sha256sum | cut -d' ' -f1)"
 docker rm -f "${legacy_container}" >/dev/null

@@ -1,6 +1,6 @@
 # WordPress 7.1.2 Test Plan
 
-All release builds and Docker compatibility tests must run on `builder.tester2.appboxes.co` as `appbox` using the SSH identity in the task request.
+All release builds and Docker compatibility tests must run on the dedicated Appbox builder. Run `./release-gate.sh repo.cylo.net/wordpress:7.1.2` after building and before pushing.
 
 ## Fresh Install
 

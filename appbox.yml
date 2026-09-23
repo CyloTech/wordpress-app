@@ -1,0 +1,135 @@
+app:
+  display_name: "Wordpress"
+  publisher: "WordPress"
+  description: "WordPress 7.1.2 packaged for Appbox with legacy Appbox storage compatibility."
+  short_description: "WordPress CMS"
+  source_repo: "https://github.com/CyloTech/wordpress-app"
+  documentation_url: "https://wordpress.org/documentation/"
+  categories:
+    - "CMS"
+
+image:
+  name: "repo.cylo.net/wordpress"
+  version: "7.1.2"
+  tag: "7.1.2"
+  digest: null
+
+container:
+  cmd: null
+  user: null
+  group_add: null
+  memory: 2
+  memory_swap: 2
+  memory_reservation: 1
+  cpus: 0
+  init: false
+  cap_add: null
+  cap_drop: null
+  shm_size: null
+  pids_limit: 0
+
+networking:
+  subdomain: "wordpress"
+  is_web_app: true
+  requires_domain: true
+  ssl: true
+  multiple_domains: false
+  tcp_passthrough: false
+
+behavior:
+  app_slots: 1
+  expect_callback: true
+  callback_requires_auth: true
+  can_update: true
+  allow_downgrade: false
+  ssl_restart: true
+  restart_text: "Restart WordPress, PHP-FPM, Nginx, and the bundled database."
+  update_text: "Back up /public_html and /mysql_data before upgrading. WordPress core and database migrations are supported, but older themes and plugins may not be compatible with WordPress 7/PHP 8.5 and can cause a critical error. Update or disable all plugins before upgrading, then re-enable them one at a time after confirming the site loads. Verify any custom or premium theme/plugin compatibility before proceeding."
+
+install:
+  pre_description: "Choose the initial WordPress administrator details. Existing instances keep their saved values during upgrades."
+  post_description: "WordPress may take a few minutes to finish first-run setup before the install callback completes."
+  custom_description: null
+
+ports:
+  tcp:
+    range: "80,443"
+    dynamic: null
+  udp:
+    range: null
+    dynamic: null
+  combined:
+    range: null
+    dynamic: null
+
+env: []
+
+# Production app 87 already has app-level binds for /public_html, /mysql_data,
+# /logs, /config, and host certificate files. The current importer writes
+# manifest volumes at app level and would change existing bind locks, so this
+# version manifest intentionally leaves storage rows unchanged during import.
+volumes: []
+shared_data: []
+
+custom_fields:
+  WP_URL:
+    label: "URL"
+    type: externalURL
+    width: 12
+    default_value: "https://%DOMAIN.DOMAIN%"
+    template_type: instance
+    validate: []
+    params: {}
+
+  WP_TITLE:
+    label: "Blog Title"
+    type: dynamicText
+    width: 12
+    default_value: "Wordpress Blog"
+    template_type: instance
+    validate:
+      - required
+      - { minLength: 1 }
+    params: {}
+
+  WP_ADMIN_USER:
+    label: "Admin User"
+    type: alphaNumeric
+    width: 6
+    default_value: "admin"
+    template_type: instance
+    validate:
+      - required
+      - alphanumeric
+      - { minLength: 3 }
+    params: {}
+
+  WP_ADMIN_PASSWORD:
+    label: "Admin Pass"
+    type: complexPassword
+    width: 6
+    default_value: null
+    template_type: password
+    validate:
+      - required
+      - complexPassword
+    params:
+      generatePassword: true
+
+  WP_ADMIN_EMAIL:
+    label: "Admin Email"
+    type: email
+    width: 12
+    default_value: null
+    template_type: instance
+    validate:
+      - required
+      - email
+    params: {}
+
+advanced:
+  extra_hosts: null
+  devices: []
+  ulimits: []
+  sysctls: []
+  chains: []

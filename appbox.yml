@@ -22,7 +22,7 @@ container:
   memory_swap: 2
   memory_reservation: 1
   cpus: 0
-  init: false
+  init: true
   cap_add: null
   cap_drop: null
   shm_size: null
@@ -39,10 +39,10 @@ networking:
 behavior:
   app_slots: 1
   expect_callback: true
-  callback_requires_auth: true
+  callback_requires_auth: false
   can_update: true
   allow_downgrade: false
-  ssl_restart: true
+  ssl_restart: false
   restart_text: "Restart WordPress, PHP-FPM, Nginx, and the bundled database."
   update_text: "Back up /public_html and /mysql_data before upgrading. WordPress core and database migrations are supported, but older themes and plugins may not be compatible with WordPress 7/PHP 8.5 and can cause a critical error. Update or disable all plugins before upgrading, then re-enable them one at a time after confirming the site loads. Verify any custom or premium theme/plugin compatibility before proceeding."
 
@@ -53,7 +53,7 @@ install:
 
 ports:
   tcp:
-    range: "80,443"
+    range: "80, 443"
     dynamic: null
   udp:
     range: null
@@ -71,61 +71,9 @@ env: []
 volumes: []
 shared_data: []
 
-custom_fields:
-  WP_URL:
-    label: "URL"
-    type: externalURL
-    width: 12
-    default_value: "https://%DOMAIN.DOMAIN%"
-    template_type: instance
-    validate: []
-    params: {}
-
-  WP_TITLE:
-    label: "Blog Title"
-    type: dynamicText
-    width: 12
-    default_value: "Wordpress Blog"
-    template_type: instance
-    validate:
-      - required
-      - { minLength: 1 }
-    params: {}
-
-  WP_ADMIN_USER:
-    label: "Admin User"
-    type: alphaNumeric
-    width: 6
-    default_value: "admin"
-    template_type: instance
-    validate:
-      - required
-      - alphanumeric
-      - { minLength: 3 }
-    params: {}
-
-  WP_ADMIN_PASSWORD:
-    label: "Admin Pass"
-    type: complexPassword
-    width: 6
-    default_value: null
-    template_type: password
-    validate:
-      - required
-      - complexPassword
-    params:
-      generatePassword: true
-
-  WP_ADMIN_EMAIL:
-    label: "Admin Email"
-    type: email
-    width: 12
-    default_value: null
-    template_type: instance
-    validate:
-      - required
-      - email
-    params: {}
+# Version imports update app-level custom fields. Keep app 87's live field
+# definitions unchanged; this manifest only adds the WordPress image version.
+custom_fields: {}
 
 advanced:
   extra_hosts: null

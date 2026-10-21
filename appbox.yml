@@ -12,8 +12,7 @@ image:
   name: "repo.cylo.net/wordpress"
   version: "7.1.2-1"
   tag: "7.1.2-1"
-  # Recorded in a follow-up commit once repo.cylo.net/wordpress:7.1.2-1 is pushed.
-  digest: null
+  digest: "repo.cylo.net/wordpress@sha256:5130fbc96f7684c0a704fecfd60cab91263a5309e67c08fbea28816740938a6d"
 
 container:
   cmd: null

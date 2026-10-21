@@ -120,7 +120,7 @@ check_core_updates() {
 check_fpm_upload() {
     local container="$1" result
 
-    docker exec "${container}" sh -c 'cat > /home/appbox/public_html/appbox-gate-upload.php' <<'PHP'
+    docker exec -i "${container}" sh -c 'cat > /home/appbox/public_html/appbox-gate-upload.php' <<'PHP'
 <?php
 echo count($_FILES), ':', $_FILES['f']['size'] ?? -1, ':', $_POST['a'] ?? '';
 PHP

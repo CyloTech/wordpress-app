@@ -1,6 +1,6 @@
 # WordPress 7.1.2-1 Test Plan
 
-All release builds and Docker compatibility tests must run on the dedicated Appbox builder. Run `./release-gate.sh repo.cylo.net/wordpress:7.1.2-1` after building and before pushing. Besides a fresh install, restart and the 7.0.2 upgrade, the gate checks the php8.5 package floor, a multipart upload through the built-in server and through nginx and PHP-FPM, and upgrades from both legacy `wordpress:latest` images (Ubuntu 20.04 / PHP 7.4 and Ubuntu 24.04 / PHP 8.3, MySQL 8.0) with a root account on `mysql_native_password`. Those legacy fixtures install MySQL with apt on first start, so the gate needs network access.
+All release builds and Docker compatibility tests must run on the dedicated Appbox builder. Run `./release-gate.sh repo.cylo.net/wordpress:7.1.2-1` after building and before pushing. Besides a fresh install, restart and the 7.0.2 upgrade, the gate checks the php8.5 package floor, that the `php` and `php-fpm8.5` module lists are identical to the deployed 7.1.2 image, the runtime php-fpm and nginx configuration tests, a multipart upload through the built-in server and through nginx and PHP-FPM, and upgrades from both legacy `wordpress:latest` images (Ubuntu 20.04 / PHP 7.4 and Ubuntu 24.04 / PHP 8.3, MySQL 8.0) with a root account on `mysql_native_password`. Those legacy fixtures install MySQL with apt on first start, so the gate needs network access.
 
 ## Fresh Install
 

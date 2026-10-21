@@ -16,6 +16,8 @@ esac
 image_ref="$1"
 gate_dir="$(cd "$(dirname "$0")" && pwd)"
 baseline_ref="repo.cylo.net/wordpress@sha256:f40b3d3637e5457fdb5f2acce820da5106c230ee9280749bd6bac564031fe79d"
+# The deployed 7.1.2 image that 7.1.2-1 replaces; the PHP module lists must match it.
+deployed_ref="repo.cylo.net/wordpress@sha256:5331635e2be71a41ff2186a6f99fcc5dc560d344d324c1e68b5ac83280bd2928"
 # The mutable wordpress:latest line (catalogue version latest-4) that the
 # release moves onto 7.1.2-1: Ubuntu 20.04 / PHP 7.4 and Ubuntu 24.04 / PHP 8.3.
 legacy_focal_ref="repo.cylo.net/wordpress@sha256:dcd14f5eb6ac90fed9d14b44856329af8eb3797c9f606c25a604b31c62bfa17b"
@@ -223,6 +225,21 @@ docker run --rm --network none --entrypoint php-fpm8.5 "${image_ref}" -v | head 
 docker run --rm --network none --entrypoint php-fpm8.5 "${image_ref}" -t \
     || fail "php-fpm8.5 configuration test failed"
 
+echo "== PHP modules match the deployed 7.1.2 image"
+docker pull --platform linux/amd64 "${deployed_ref}" >/dev/null
+for sapi in php php-fpm8.5; do
+    deployed_modules="$(docker run --rm --network none --entrypoint "${sapi}" "${deployed_ref}" -m)" \
+        || fail "could not list ${sapi} modules of ${deployed_ref}"
+    release_modules="$(docker run --rm --network none --entrypoint "${sapi}" "${image_ref}" -m)" \
+        || fail "could not list ${sapi} modules of ${image_ref}"
+    [[ -n "${deployed_modules}" ]] || fail "${deployed_ref} reported no ${sapi} modules"
+    if [[ "${deployed_modules}" != "${release_modules}" ]]; then
+        diff <(printf '%s\n' "${deployed_modules}") <(printf '%s\n' "${release_modules}") >&2 || true
+        fail "${sapi} module list differs from the deployed 7.1.2 image"
+    fi
+    echo "${sapi}: $(printf '%s\n' "${release_modules}" | grep -cv -e '^\[' -e '^$') modules, identical to 7.1.2"
+done
+
 echo "== Multipart upload (built-in server)"
 docker run --rm --network none -v "${gate_dir}/release:/release:ro" --entrypoint sh "${image_ref}" \
     /release/multipart-smoke.sh php8.5 \
@@ -265,6 +282,11 @@ docker run --rm --platform linux/amd64 \
 echo "== Fresh install and restart"
 launch "${fresh_container}" "${gate_root}/fresh" "${image_ref}"
 check_core_updates "${fresh_container}" 7.1.2
+# Test the configuration files the entrypoint actually runs with.
+docker exec "${fresh_container}" php-fpm8.5 -t --fpm-config /home/appbox/config/php-fpm/php-fpm.conf \
+    || fail "php-fpm8.5 runtime configuration test failed"
+docker exec "${fresh_container}" nginx -t -c /home/appbox/config/nginx/nginx.conf \
+    || fail "nginx runtime configuration test failed"
 check_fpm_upload "${fresh_container}"
 fresh_config_hash="$(docker exec "${fresh_container}" sha256sum "${wp_path}/wp-config.php" | cut -d' ' -f1)"
 docker restart "${fresh_container}" >/dev/null

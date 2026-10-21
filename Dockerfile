@@ -5,7 +5,7 @@ FROM ubuntu:26.04@sha256:c098726dd9b9733f3e885f8de0ef375206a311b0a317eadc40d347b
 # from the Ubuntu security notice that fixes the PHP vulnerabilities being
 # released; the build fails if apt cannot install at least that version, and
 # the release gate checks the finished image against it. Empty fails the build.
-ARG PHP85_MIN_VERSION=
+ARG PHP85_MIN_VERSION=8.5.4-0ubuntu1.5
 ARG WORDPRESS_VERSION=7.1.2
 ARG WORDPRESS_TARBALL_MD5=b15c6a48881647462db57960a82419d2
 ARG WP_CLI_VERSION=2.12.0

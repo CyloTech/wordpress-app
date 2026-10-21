@@ -37,7 +37,7 @@ RUN set -eux; \
     printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d; \
     chmod 0755 /usr/sbin/policy-rc.d; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
+    apt-get install -y --no-install-recommends -o Dpkg::Options::=--force-unsafe-io \
         ca-certificates \
         curl \
         less \

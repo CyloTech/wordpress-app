@@ -22,7 +22,7 @@ WordPress core automatic updates are enabled for new installs. During upgrade, t
 
 ## Runtime
 
-The image is self-contained and builds directly from `ubuntu:latest`. It installs Nginx, PHP-FPM, MySQL, WordPress, WP-CLI, ionCube, and supporting packages during the Docker build.
+The image is self-contained and builds from `ubuntu:26.04`, pinned by digest in the Dockerfile. It installs Nginx, PHP-FPM, MySQL, WordPress, WP-CLI, ionCube, and supporting packages during the Docker build.
 
 Runtime supervision is handled by `/entrypoint.sh`, which starts MySQL, runs the WordPress install/upgrade routine, then starts PHP-FPM and Nginx. The image still preserves the legacy `/home/appbox` layout so existing Appbox mounts remain compatible.
 
@@ -57,7 +57,11 @@ The script uses WP-CLI and requires the bundled MySQL service to be running.
 
 ## Build
 
-Builds and pushes for release run on the dedicated Appbox builder from an archive of the exact pushed Git commit. Build for `linux/amd64`, run `./release-gate.sh repo.cylo.net/wordpress:7.1.2` against the built image, then push the new tag. Record the registry digest and add it to `appbox.yml` before a separate catalogue import.
+Builds and pushes for release run on the dedicated Appbox builder from an archive of the exact pushed Git commit. Build for `linux/amd64`, run `./release-gate.sh repo.cylo.net/wordpress:7.1.2-1` against the built image, then push the new tag.
+
+`PHP85_MIN_VERSION` in the Dockerfile is the oldest acceptable version of Ubuntu's php8.5 packages. Set it to the version from the Ubuntu security notice before a security release; the build fails while it is empty or apt cannot install that version, and the gate checks every php8.5 package in the image against it. `sources/mysqld.cnf` enables `mysql_native_password`, which MySQL 8.4 disables by default, so databases from older Appbox WordPress releases whose accounts still use it keep working.
+
+A trial build of unreleased changes is tagged `local/wordpress-trial:<tag>`, is never pushed, and is gated with `./release-gate.sh local/wordpress-trial:7.1.2-1 repo.cylo.net/wordpress:7.1.2-1`, which runs every check and confirms the release tag is still absent from the registry. Record the registry digest and add it to `appbox.yml` before a separate catalogue import.
 
 ## Appbox Import
 

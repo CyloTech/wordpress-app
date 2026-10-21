@@ -1,5 +1,11 @@
-FROM ubuntu:latest
+# Ubuntu 26.04, pinned by digest so the build is reproducible.
+FROM ubuntu:26.04@sha256:c098726dd9b9733f3e885f8de0ef375206a311b0a317eadc40d347b1115fb944
 
+# Oldest acceptable version of Ubuntu's php8.5 packages. Set it to the version
+# from the Ubuntu security notice that fixes the PHP vulnerabilities being
+# released; the build fails if apt cannot install at least that version, and
+# the release gate checks the finished image against it. Empty fails the build.
+ARG PHP85_MIN_VERSION=
 ARG WORDPRESS_VERSION=7.1.2
 ARG WORDPRESS_TARBALL_MD5=b15c6a48881647462db57960a82419d2
 ARG WP_CLI_VERSION=2.12.0
@@ -17,6 +23,8 @@ ENV MYSQL_ROOT_PASSWORD=mysqlr00t \
     WP_CONFIG_TEMPLATE=/usr/local/share/wordpress/wp-config.php \
     WP_NGINX_CONFIG=/usr/local/share/wordpress/wordpress.conf \
     MYSQL_DATA_TEMPLATE=
+
+LABEL net.cylo.wordpress.php85-min-version="${PHP85_MIN_VERSION}"
 
 RUN set -eux; \
     existing_group="$(getent group 1000 | cut -d: -f1 || true)"; \
@@ -53,6 +61,10 @@ RUN set -eux; \
         rsync \
         tar \
         tzdata; \
+    test -n "${PHP85_MIN_VERSION}"; \
+    php85_versions="$(dpkg-query -W -f='${db:Status-Abbrev}|${source:Package}|${Version}\n' | awk -F'|' '$1 ~ /^ii/ && $2 == "php8.5" {print $3}' | sort -u)"; \
+    test "$(printf '%s\n' "${php85_versions}" | wc -l)" -eq 1; \
+    dpkg --compare-versions "${php85_versions}" ge "${PHP85_MIN_VERSION}"; \
     rm -f /usr/sbin/policy-rc.d; \
     rm -rf /var/lib/apt/lists/*
 

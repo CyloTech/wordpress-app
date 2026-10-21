@@ -10,9 +10,10 @@ app:
 
 image:
   name: "repo.cylo.net/wordpress"
-  version: "7.1.2"
-  tag: "7.1.2"
-  digest: "repo.cylo.net/wordpress@sha256:5331635e2be71a41ff2186a6f99fcc5dc560d344d324c1e68b5ac83280bd2928"
+  version: "7.1.2-1"
+  tag: "7.1.2-1"
+  # Recorded in a follow-up commit once repo.cylo.net/wordpress:7.1.2-1 is pushed.
+  digest: null
 
 container:
   cmd: null

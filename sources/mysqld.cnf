@@ -13,6 +13,9 @@ tmpdir = /tmp
 lc-messages-dir = /usr/share/mysql
 skip-external-locking
 bind-address = 127.0.0.1
+# MySQL 8.4 disables this plugin by default. Older Appbox WordPress databases
+# can have accounts that still use it, and the root account must keep working.
+mysql_native_password = ON
 
 key_buffer_size = 16M
 max_allowed_packet = 64M

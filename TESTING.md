@@ -1,13 +1,13 @@
-# WordPress 7.1.2 Test Plan
+# WordPress 7.1.2-1 Test Plan
 
-All release builds and Docker compatibility tests must run on the dedicated Appbox builder. Run `./release-gate.sh repo.cylo.net/wordpress:7.1.2` after building and before pushing.
+All release builds and Docker compatibility tests must run on the dedicated Appbox builder. Run `./release-gate.sh repo.cylo.net/wordpress:7.1.2-1` after building and before pushing. Besides a fresh install, restart and the 7.0.2 upgrade, the gate checks the php8.5 package floor, a multipart upload through the built-in server and through nginx and PHP-FPM, and upgrades from both legacy `wordpress:latest` images (Ubuntu 20.04 / PHP 7.4 and Ubuntu 24.04 / PHP 8.3, MySQL 8.0) with a root account on `mysql_native_password`. Those legacy fixtures install MySQL with apt on first start, so the gate needs network access.
 
 ## Fresh Install
 
 Build the image:
 
 ```bash
-docker build --platform linux/amd64 -t repo.cylo.net/wordpress:7.1.2 .
+docker build --platform linux/amd64 -t repo.cylo.net/wordpress:7.1.2-1 .
 ```
 
 Run a fresh install with persistent directories:
@@ -30,7 +30,7 @@ docker run -d --name wordpress-fresh \
   -v /home/appbox/testdata/wordpress-fresh/mysql_data:/home/appbox/mysql \
   -v /home/appbox/testdata/wordpress-fresh/logs:/home/appbox/logs \
   -v /home/appbox/testdata/wordpress-fresh/config:/home/appbox/config \
-  repo.cylo.net/wordpress:7.1.2
+  repo.cylo.net/wordpress:7.1.2-1
 ```
 
 Verify:
@@ -77,7 +77,7 @@ docker run -d --name wordpress-upgrade \
   -v /home/appbox/testdata/wordpress-upgrade/mysql_data:/home/appbox/mysql \
   -v /home/appbox/testdata/wordpress-upgrade/logs:/home/appbox/logs \
   -v /home/appbox/testdata/wordpress-upgrade/config:/home/appbox/config \
-  repo.cylo.net/wordpress:7.1.2
+  repo.cylo.net/wordpress:7.1.2-1
 ```
 
 Verify:
@@ -108,6 +108,6 @@ Before importing into app ID 87:
 
 1. Run the Cylo API importer with `--dry-run`.
 2. Confirm no validation errors.
-3. Confirm the pushed `repo.cylo.net/wordpress:7.1.2` manifest has a `linux/amd64` digest and add the immutable index digest to `appbox.yml`.
+3. Confirm the pushed `repo.cylo.net/wordpress:7.1.2-1` manifest has a `linux/amd64` digest and add the immutable index digest to `appbox.yml`.
 4. Agree the catalogue default separately from image publication, then import through the supported importer.
 5. Re-query `app_versions`, `apps`, and `appinstance` to confirm only the authorised catalogue and instance changes occurred.

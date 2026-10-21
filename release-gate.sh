@@ -19,8 +19,11 @@ baseline_ref="repo.cylo.net/wordpress@sha256:f40b3d3637e5457fdb5f2acce820da5106c
 # The deployed 7.1.2 image that 7.1.2-1 replaces; the PHP module lists must match it.
 deployed_ref="repo.cylo.net/wordpress@sha256:5331635e2be71a41ff2186a6f99fcc5dc560d344d324c1e68b5ac83280bd2928"
 # The mutable wordpress:latest line (catalogue version latest-4) that the
-# release moves onto 7.1.2-1: Ubuntu 20.04 / PHP 7.4 and Ubuntu 24.04 / PHP 8.3.
-legacy_focal_ref="repo.cylo.net/wordpress@sha256:dcd14f5eb6ac90fed9d14b44856329af8eb3797c9f606c25a604b31c62bfa17b"
+# release moves onto 7.1.2-1. Only its current Ubuntu 24.04 / PHP 8.3 build
+# is still in the registry. The Ubuntu 20.04 / PHP 7.4 build that 17 live
+# instances run (sha256:dcd14f5eb6ac90fed9d14b44856329af8eb3797c9f606c25a604b31c62bfa17b)
+# returns MANIFEST_UNKNOWN from repo.cylo.net and the node repo caches, so
+# this gate does not cover the 20.04 upgrade path.
 legacy_noble_ref="repo.cylo.net/wordpress@sha256:c3f4b3726aa0d6a26a4e85f52ab6e80d8bc2a96036216fbb3ae9a09fa57899c7"
 wp_path="/home/appbox/public_html"
 gate_root="$(mktemp -d /home/appbox/builds/wordpress-gate.XXXXXX)"
@@ -34,15 +37,12 @@ gate_suffix="${gate_root##*.}"
 fresh_container="wp-gate-fresh-${gate_suffix}"
 legacy_container="wp-gate-legacy-${gate_suffix}"
 upgrade_container="wp-gate-upgrade-${gate_suffix}"
-focal_container="wp-gate-focal-${gate_suffix}"
-focal_upgrade_container="wp-gate-focal-upgrade-${gate_suffix}"
 noble_container="wp-gate-noble-${gate_suffix}"
 noble_upgrade_container="wp-gate-noble-upgrade-${gate_suffix}"
 test_password="$(openssl rand -base64 30)"
 
 cleanup() {
     docker rm -f "${fresh_container}" "${legacy_container}" "${upgrade_container}" \
-        "${focal_container}" "${focal_upgrade_container}" \
         "${noble_container}" "${noble_upgrade_container}" >/dev/null 2>&1 || true
     if [[ "${gate_root}" =~ ^/home/appbox/builds/wordpress-gate\.[A-Za-z0-9]{6}$ ]]; then
         docker run --rm --platform linux/amd64 --entrypoint sh \
@@ -314,8 +314,8 @@ check_core_updates "${upgrade_container}" 7.1.2
 
 docker rm -f "${upgrade_container}" >/dev/null
 
-echo "== Upgrade from the legacy wordpress:latest images (latest-4)"
-legacy_upgrade focal "${legacy_focal_ref}" "${focal_container}" "${focal_upgrade_container}"
+echo "== Upgrade from the legacy wordpress:latest image (latest-4, Ubuntu 24.04)"
+echo "NOT COVERED: the Ubuntu 20.04 / PHP 7.4 latest-4 image is no longer in the registry"
 legacy_upgrade noble "${legacy_noble_ref}" "${noble_container}" "${noble_upgrade_container}"
 
 echo "== Registry tag must not exist"
